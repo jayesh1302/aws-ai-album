@@ -10,9 +10,14 @@ set -eu
 
 # check if the flag -d presented, if so then delete the stack
 if [ "$1" == "-d" ]; then
-        echo "Deleting stack..."
-        aws cloudformation delete-stack --stack-name $STACK_NAME_P1
-        aws cloudformation delete-stack --stack-name $STACK_NAME_P2
+        aws s3 rm s3://p1-bucket-11-26 --recursive
+        aws s3 rm s3://p2-bucket-11-26 --recursive
+        aws s3 rm s3://aws-ai-album-11-26 --recursive
+        for STACK_NAME in "${STACK_NAMES[@]}"
+        do
+                echo "Deleting stack...${STACK_NAME}"
+                aws cloudformation delete-stack --stack-name $STACK_NAME
+        done
         exit 0
 else
         if [ -z ${1} ]; then
