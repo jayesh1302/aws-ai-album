@@ -4,10 +4,8 @@ phases:
     commands:
       - echo Building
       - pip install --target lambda_functions/LF1 -r lambda_functions/LF1/requirements.txt
-      - pip install --target lambda_functions/LF2 -r lambda_functions/LF2/requirements.txt
       - mkdir tmp
       - zip -r tmp/LF1.zip lambda_functions/LF1/*
-      - zip -r tmp/LF2.zip lambda_functions/LF2/*
       - cp cloudformation/P1_LF.yaml tmp/
 artifacts:
   base-directory: "tmp"

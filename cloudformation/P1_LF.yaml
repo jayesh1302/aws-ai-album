@@ -1,10 +1,16 @@
 AWSTemplateFormatVersion: "2010-09-09"
 
 Parameters:
-  BucketName:
+  BucketName1:
     Type: String
     Default: NA
-  ObjectKey:
+  BucketName2:
+    Type: String
+    Default: NA
+  ObjectKey1:
+    Type: String
+    Default: NA
+  ObjectKey2:
     Type: String
     Default: NA
 
@@ -19,11 +25,8 @@ Resources:
       Timeout: 15
       MemorySize: 128
       Code:
-        S3Bucket: !Ref BucketName
-        S3Key: !Join
-          - ""
-          - - !Ref ObjectKey
-            - "/LF1.zip"
+        S3Bucket: !Ref BucketName1
+        S3Key: !Ref ObjectKey1
   LF2:
     Type: AWS::Lambda::Function
     Properties:
@@ -34,11 +37,8 @@ Resources:
       Timeout: 15
       MemorySize: 128
       Code:
-        S3Bucket: !Ref BucketName
-        S3Key: !Join
-          - ""
-          - - !Ref ObjectKey
-            - "/LF2.zip"
+        S3Bucket: !Ref BucketName2
+        S3Key: !Ref ObjectKey2
 
   LFRole:
     Type: AWS::IAM::Role

@@ -19,19 +19,32 @@ Parameters:
     Default: P1
 
 Resources:
-  CodeBuildProject:
+  CodeBuildProject1:
     Type: AWS::CodeBuild::Project
     Properties:
       Artifacts:
         Type: CODEPIPELINE
       Source:
         Type: CODEPIPELINE
-        BuildSpec: lambda_functions/buildspec.yml
+        BuildSpec: lambda_functions/LF1/buildspec.yml
       Environment:
         ComputeType: BUILD_GENERAL1_SMALL
         Image: aws/codebuild/standard:4.0
         Type: LINUX_CONTAINER
-      Name: !Ref ApplicationStackName
+      ServiceRole: !GetAtt CodeBuildRole.Arn
+
+  CodeBuildProject2:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Artifacts:
+        Type: CODEPIPELINE
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: lambda_functions/LF2/buildspec.yml
+      Environment:
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: aws/codebuild/standard:4.0
+        Type: LINUX_CONTAINER
       ServiceRole: !GetAtt CodeBuildRole.Arn
 
   PipelineArtifactsBucket:
@@ -70,18 +83,31 @@ Resources:
 
         - Name: Build
           Actions:
-            - Name: BuildAction
+            - Name: BuildAction_LF1
               ActionTypeId:
                 Category: Build
                 Owner: AWS
                 Version: 1
                 Provider: CodeBuild
               Configuration:
-                ProjectName: !Ref CodeBuildProject
+                ProjectName: !Ref CodeBuildProject1
               InputArtifacts:
                 - Name: SourceCode
               OutputArtifacts:
-                - Name: BuildOutput
+                - Name: BuildOutput1
+
+            - Name: BuildAction_LF2
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Version: 1
+                Provider: CodeBuild
+              Configuration:
+                ProjectName: !Ref CodeBuildProject2
+              InputArtifacts:
+                - Name: SourceCode
+              OutputArtifacts:
+                - Name: BuildOutput2
 
         - Name: Deploy
           Actions:
@@ -92,7 +118,8 @@ Resources:
                 Provider: CloudFormation
                 Version: "1"
               InputArtifacts:
-                - Name: BuildOutput
+                - Name: BuildOutput1
+                - Name: BuildOutput2
               Configuration:
                 ActionMode: CREATE_UPDATE
                 Capabilities: CAPABILITY_IAM
@@ -101,8 +128,10 @@ Resources:
                 TemplatePath: !Sub "BuildOutput::P1_LF.yaml"
                 ParameterOverrides: |
                   {
-                    "BucketName" : { "Fn::GetArtifactAtt" : ["BuildOutput", "BucketName"]},
-                    "ObjectKey" : { "Fn::GetArtifactAtt" : ["BuildOutput", "ObjectKey"]}
+                    "BucketName1" : { "Fn::GetArtifactAtt" : ["BuildOutput1", "BucketName"]},
+                    "ObjectKey1" : { "Fn::GetArtifactAtt" : ["BuildOutput1", "ObjectKey"]},
+                    "BucketName2" : { "Fn::GetArtifactAtt" : ["BuildOutput2", "BucketName"]},
+                    "ObjectKey2" : { "Fn::GetArtifactAtt" : ["BuildOutput2", "ObjectKey"]}
                   }
               RunOrder: 1
 
