@@ -5,25 +5,18 @@ Parameters:
   GitHubOAuthToken:
     Type: String
     NoEcho: true
-    # MinLength: 93
-    # MaxLength: 93
-    AllowedPattern: "[A-Za-z0-9_]*"
   GitHubOwner:
     Type: String
     Default: nicksome168
-    AllowedPattern: "[A-Za-z0-9-]+"
   GitHubRepo:
     Type: String
     Default: aws-ai-album
-    AllowedPattern: "[A-Za-z0-9-]+"
   GitHubBranch:
     Type: String
     Default: main
-    AllowedPattern: "[A-Za-z0-9-]+"
   ApplicationStackName:
     Type: String
     Default: ai-album-app
-    AllowedPattern: "[A-Za-z0-9-]+"
 
 Resources:
   PipelineArtifactsBucket:
@@ -47,14 +40,14 @@ Resources:
       Name: !Ref ApplicationStackName
       ServiceRole: !GetAtt CodeBuildRole.Arn
 
-  CodePipeline:
+  P2:
     Type: AWS::CodePipeline::Pipeline
     Properties:
       ArtifactStore:
         Type: S3
         Location: !Ref PipelineArtifactsBucket
       RestartExecutionOnUpdate: true
-      RoleArn: !GetAtt CodePipelineRole.Arn
+      RoleArn: !GetAtt P2Role.Arn
       Stages:
         - Name: Source
           Actions:
@@ -103,10 +96,10 @@ Resources:
               InputArtifacts:
                 - Name: BuiltArtifact
               Configuration:
-                BucketName: !Ref frontendBucket
+                BucketName: !Ref B1
                 Extract: true
               RunOrder: 1
-  frontendBucket:
+  B1:
     Type: "AWS::S3::Bucket"
     Properties:
       BucketName: aws-ai-album-11-26
@@ -122,10 +115,10 @@ Resources:
         IgnorePublicAcls: false
         RestrictPublicBuckets: false
 
-  frontendBucketPolicy:
+  B1Policy:
     Type: "AWS::S3::BucketPolicy"
     Properties:
-      Bucket: !Ref frontendBucket
+      Bucket: !Ref B1
       PolicyDocument:
         Version: 2012-10-17
         Statement:
@@ -136,7 +129,7 @@ Resources:
             Resource: !Join
               - ""
               - - "arn:aws:s3:::"
-                - !Ref frontendBucket
+                - !Ref B1
                 - /*
 
   GithubWebhook:
@@ -149,11 +142,11 @@ Resources:
       Filters:
         - JsonPath: "$.ref"
           MatchEquals: refs/heads/{Branch}
-      TargetPipeline: !Ref CodePipeline
+      TargetPipeline: !Ref P2
       TargetAction: Source
-      TargetPipelineVersion: !GetAtt CodePipeline.Version
+      TargetPipelineVersion: !GetAtt P2.Version
 
-  CodePipelineRole:
+  P2Role:
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
@@ -164,7 +157,7 @@ Resources:
             Service: codepipeline.amazonaws.com
           Action: sts:AssumeRole
 
-  CodePipelineServiceRolePolicy:
+  P2ServiceRolePolicy:
     Type: AWS::IAM::Policy
     Properties:
       PolicyDocument:
@@ -290,9 +283,9 @@ Resources:
               - appconfig:StopDeployment
               - appconfig:GetDeployment
             Resource: "*"
-      PolicyName: CodePipelineServiceRolePolicy
+      PolicyName: P2ServiceRolePolicy
       Roles:
-        - !Ref CodePipelineRole
+        - !Ref P2Role
 
   CodeBuildRole:
     Type: AWS::IAM::Role
@@ -339,6 +332,6 @@ Resources:
 Outputs:
   outputWebsiteURL:
     Value: !GetAtt
-      - frontendBucket
+      - B1
       - WebsiteURL
     Description: Static website URL
