@@ -101,7 +101,8 @@ Resources:
                 TemplatePath: !Sub "BuildOutput::P1_LF.yaml"
                 ParameterOverrides: |
                   {
-                    "BucketName" : { "Fn::GetArtifactAtt" : ["BuildOutput", "BucketName"]}
+                    "BucketName" : { "Fn::GetArtifactAtt" : ["BuildOutput", "BucketName"]},
+                    "ObjectKey" : { "Fn::GetArtifactAtt" : ["BuildOutput", "ObjectKey"]}
                   }
               RunOrder: 1
 

@@ -4,6 +4,9 @@ Parameters:
   BucketName:
     Type: String
     Default: NA
+  ObjectKey:
+    Type: String
+    Default: NA
 
 Resources:
   LF1:
@@ -17,7 +20,10 @@ Resources:
       MemorySize: 128
       Code:
         S3Bucket: !Ref BucketName
-        S3Key: "LF1.zip"
+        S3Key: !Join
+          - ""
+          - - !Ref ObjectKey
+            - "/LF1.zip"
   LF2:
     Type: AWS::Lambda::Function
     Properties:
@@ -29,7 +35,10 @@ Resources:
       MemorySize: 128
       Code:
         S3Bucket: !Ref BucketName
-        S3Key: "LF2.zip"
+        S3Key: !Join
+          - ""
+          - - !Ref ObjectKey
+            - "/LF2.zip"
 
   LFRole:
     Type: AWS::IAM::Role
