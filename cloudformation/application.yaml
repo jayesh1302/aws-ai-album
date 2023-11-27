@@ -1,0 +1,43 @@
+AWSTemplateFormatVersion: "2010-09-09"
+# *** Change this to something useful for you!
+Description: frontend-s3
+
+Resources:
+  frontendBucket:
+    Type: "AWS::S3::Bucket"
+    Properties:
+      BucketName: frontend
+      WebsiteConfiguration:
+        IndexDocument: index.html
+        ErrorDocument: error.html
+      OwnershipControls:
+        Rules:
+          - ObjectOwnership: ObjectWriter
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: false
+        BlockPublicPolicy: false
+        IgnorePublicAcls: false
+        RestrictPublicBuckets: false
+
+  frontendBucketPolicy:
+    Type: "AWS::S3::BucketPolicy"
+    Properties:
+      Bucket: !Ref frontendBucket
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Sid: PublicReadForGetBucketObjects
+            Effect: Allow
+            Principal: "*"
+            Action: "s3:GetObject"
+            Resource: !Join
+              - ""
+              - - "arn:aws:s3:::"
+                - !Ref frontendBucket
+                - /*
+Outputs:
+  outputWebsiteURL:
+    Value: !GetAtt
+      - frontendBucket
+      - WebsiteURL
+    Description: Static website URL

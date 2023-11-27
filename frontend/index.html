@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Album</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        #results {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>AI Album</h1>
+
+    <h2>Search Photos</h2>
+    <label for="searchQuery">Search Query:</label>
+    <input type="text" id="searchQuery">
+    <button onclick="searchPhotos()">Search</button>
+
+    <div id="searchResults"></div>
+
+    <h2>Upload Photo</h2>
+    <form enctype="multipart/form-data" id="uploadForm">
+        <label for="photo">Choose a photo:</label>
+        <input type="file" id="photo" accept="image/*" required>
+        <br>
+        <label for="customLabels">Custom Labels (comma-separated):</label>
+        <input type="text" id="customLabels">
+        <br>
+        <button type="button" onclick="uploadPhoto()">Upload</button>
+    </form>
+
+    <div id="uploadResults"></div>
+
+    <script>
+        const apiEndpoint = 'https://your-api-endpoint';
+
+        function searchPhotos() {
+            const searchQuery = document.getElementById('searchQuery').value;
+            const resultsDiv = document.getElementById('searchResults');
+            fetch(`${apiEndpoint}/search?query=${searchQuery}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! Status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Update the results section with the retrieved photos
+                    resultsDiv.innerHTML = '';
+                    data.photos.forEach(photo => {
+                        resultsDiv.innerHTML += `<img src="${photo.url}" alt="Photo">`;
+                    });
+                })
+                .catch(error => {
+                    console.error('Error during search:', error);
+                    resultsDiv.innerHTML = 'Error during search. Please try again.';
+                });
+        }
+
+        function uploadPhoto() {
+            const fileInput = document.getElementById('photo');
+            const customLabelsInput = document.getElementById('customLabels');
+            const file = fileInput.files[0];
+            const customLabels = customLabelsInput.value;
+
+            const formData = new FormData();
+            formData.append('photo', file);
+
+            // Set x-amz-meta-customLabels header
+            const headers = new Headers();
+            headers.append('x-amz-meta-customLabels', customLabels);
+
+            const resultsDiv = document.getElementById('uploadResults');
+            fetch(`${apiEndpoint}/photos`, {
+                method: 'PUT',
+                headers: headers,
+                body: formData
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! Status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    resultsDiv.innerHTML = 'Photo uploaded successfully';
+                })
+                .catch(error => {
+                    resultsDiv.innerHTML = 'Error during photo upload';
+                });
+            fileInput.value = '';
+            customLabelsInput.value = '';
+        }
+    </script>
+</body>
+
+</html>
