@@ -94,21 +94,50 @@ Resources:
 
         - Name: Deploy
           Actions:
-            - Name: CloudFormationDeploy
+            - Name: S3Deploy
               ActionTypeId:
                 Category: Deploy
                 Owner: AWS
-                Provider: CloudFormation
+                Provider: S3
                 Version: "1"
               InputArtifacts:
                 - Name: BuiltArtifact
               Configuration:
-                ActionMode: CREATE_UPDATE
-                Capabilities: CAPABILITY_IAM
-                RoleArn: !GetAtt CloudformationRole.Arn
-                StackName: !Ref ApplicationStackName
-                TemplatePath: !Sub "SourceCode::application.yaml"
+                BucketName: !Ref frontendBucket
+                Extract: true
               RunOrder: 1
+  frontendBucket:
+    Type: "AWS::S3::Bucket"
+    Properties:
+      BucketName: aws-ai-album-11-26
+      WebsiteConfiguration:
+        IndexDocument: index.html
+        ErrorDocument: error.html
+      OwnershipControls:
+        Rules:
+          - ObjectOwnership: ObjectWriter
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: false
+        BlockPublicPolicy: false
+        IgnorePublicAcls: false
+        RestrictPublicBuckets: false
+
+  frontendBucketPolicy:
+    Type: "AWS::S3::BucketPolicy"
+    Properties:
+      Bucket: !Ref frontendBucket
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Sid: PublicReadForGetBucketObjects
+            Effect: Allow
+            Principal: "*"
+            Action: "s3:GetObject"
+            Resource: !Join
+              - ""
+              - - "arn:aws:s3:::"
+                - !Ref frontendBucket
+                - /*
 
   GithubWebhook:
     Type: "AWS::CodePipeline::Webhook"
@@ -307,3 +336,9 @@ Resources:
           Action: sts:AssumeRole
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AdministratorAccess
+Outputs:
+  outputWebsiteURL:
+    Value: !GetAtt
+      - frontendBucket
+      - WebsiteURL
+    Description: Static website URL
