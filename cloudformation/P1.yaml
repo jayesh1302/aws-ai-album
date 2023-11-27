@@ -1,0 +1,140 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: P1
+
+Parameters:
+  ApplicationStackName:
+    Type: String
+    Default: LF_deploy
+
+Resources:
+  CodeBuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Artifacts:
+        Type: CODEPIPELINE
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: lambda_functions/buildspec.yml
+      Environment:
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: aws/codebuild/standard:6.0
+        Type: LINUX_CONTAINER
+      Name: !Ref ApplicationStackName
+      ServiceRole:
+        Fn::ImportValue:
+          Fn::Sub: "CodeBuildRoleArn"
+
+  CodeDeployApplication:
+    Type: AWS::CodeDeploy::Application
+    Properties:
+      ComputePlatform: Lambda
+
+  CodeDeployGroup:
+    Type: AWS::CodeDeploy::DeploymentGroup
+    Properties:
+      ApplicationName: !Ref CodeDeployApplication
+      ServiceRoleArn: !Ref "CodeDeployServiceRole"
+      Deployment:
+        Description: "First time"
+        IgnoreApplicationStopFailures: true
+        Revision:
+          RevisionType: S3
+          S3Location:
+            Bucket:
+              Ref: Bucket
+            Key:
+              Ref: Key
+            BundleType: Zip
+
+  PipelineArtifactsBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      VersioningConfiguration:
+        Status: Enabled
+  P1:
+    Type: AWS::CodePipeline::Pipeline
+    Properties:
+      ArtifactStore:
+        Type: S3
+        Location: !Ref PipelineArtifactsBucket
+      RestartExecutionOnUpdate: true
+      RoleArn:
+        Fn::ImportValue:
+          Fn::Sub: "CodepipelineRole"
+      Stages:
+        - Name: Source
+          Actions:
+            - Name: Source
+              InputArtifacts: []
+              ActionTypeId:
+                Category: Source
+                Owner: ThirdParty
+                Version: 1
+                Provider: GitHub
+              Configuration:
+                Owner:
+                  Fn::ImportValue:
+                    Fn::Sub: "GithubOwner"
+                Repo:
+                  Fn::ImportValue:
+                    Fn::Sub: "GitHubRepo"
+                Branch:
+                  Fn::ImportValue:
+                    Fn::Sub: "GitHubBranch"
+                PollForSourceChanges: false
+                OAuthToken:
+                  Fn::ImportValue:
+                    Fn::Sub: "GitHubOAuthToken"
+              OutputArtifacts:
+                - Name: SourceCode
+              RunOrder: 1
+
+        - Name: Build
+          Actions:
+            - Name: BuildAction
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Version: 1
+                Provider: CodeBuild
+              Configuration:
+                ProjectName: !Ref CodeBuildProject
+              InputArtifacts:
+                - Name: SourceCode
+              OutputArtifacts:
+                - Name: BuildOutput
+
+        - Name: Deploy
+          Actions:
+            - Name: CloudFormationDeploy
+              ActionTypeId:
+                Category: Deploy
+                Owner: AWS
+                Provider: CloudFormation
+                Version: "1"
+              InputArtifacts:
+                - Name: BuildOutput
+              Configuration:
+                ActionMode: CREATE_UPDATE
+                Capabilities: CAPABILITY_IAM
+                RoleArn: !GetAtt CloudformationRole.Arn
+                StackName: !Ref ApplicationStackName
+                TemplatePath: !Sub "BuildOutput::P1_LF.yaml"
+                ParametersOverrides: |
+                  {
+                    "BucketName" : { "Fn::GetArtifactAtt" : ["BuildOutput", "BucketName"]}
+                  }
+              RunOrder: 1
+
+  CloudformationRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          Effect: Allow
+          Principal:
+            Service: cloudformation.amazonaws.com
+          Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AdministratorAccess
