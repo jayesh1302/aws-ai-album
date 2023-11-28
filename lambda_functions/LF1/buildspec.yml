@@ -2,13 +2,9 @@ version: 0.2
 phases:
   build:
     commands:
-      - echo Building
       - pip install --target lambda_functions/LF1 -r lambda_functions/LF1/requirements.txt
-      - mkdir tmp
-      - zip -r tmp/LF1.zip lambda_functions/LF1/*
-      - cp cloudformation/P1_LF.yaml tmp/
 artifacts:
-  base-directory: "tmp"
-  discard-paths: yes # discard parent dir
+  base-directory: lambda_functions/LF1
   files:
     - "**/*"
+  type: zip

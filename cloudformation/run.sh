@@ -5,14 +5,23 @@ STACK_NAME_P1="P1"
 STACK_NAME_P2="P2"
 # create an array of stack names "P1" and "P2"
 STACK_NAMES=($STACK_NAME_P1 $STACK_NAME_P2)
-
+# create a bucket array
+BUCKET_NAMES=("p1-bucket-11-26" "p2-bucket-11-26" "aws-ai-album-11-26")
 set -eu
 
 # check if the flag -d presented, if so then delete the stack
 if [ "$1" == "-d" ]; then
-        aws s3 rm s3://p1-bucket-11-26 --recursive
-        aws s3 rm s3://p2-bucket-11-26 --recursive
-        aws s3 rm s3://aws-ai-album-11-26 --recursive
+        # loop through BUCKET_NAMES and delete the bucket
+        for BUCKET_NAME in "${BUCKET_NAMES[@]}"
+        do
+                echo "Deleting bucket...${BUCKET_NAME}"
+                # try and catch to delete all objects in the bucket
+                aws s3api delete-objects --bucket $BUCKET_NAME  --delete "$(aws s3api list-object-versions --bucket "$BUCKET_NAME" --output=json --query='{Objects: Versions[].{Key:Key,VersionId:VersionId}}')" || echo "no version"
+                # if the bucket is not empty, then delete all objects in the bucket
+                aws s3 rm s3://$BUCKET_NAME --recursive || echo "no object"
+                # if the bucket is empty, then delete the bucket
+                aws s3 rb s3://$BUCKET_NAME --force || echo "no bucket"
+        done
         for STACK_NAME in "${STACK_NAMES[@]}"
         do
                 echo "Deleting stack...${STACK_NAME}"
