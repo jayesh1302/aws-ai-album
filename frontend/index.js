@@ -69,7 +69,7 @@ function showImages(res) {
       if (classname) { newimg.classList.add(); }
 
       filename = results[i].substring(results[i].lastIndexOf('/') + 1)
-      newimg.src = "https://b1-bucket-11-26.s3.amazonaws.com/" + filename;
+      newimg.src = "https://b2-bucket-11-26.s3.amazonaws.com/" + filename;
       newDiv.appendChild(newimg);
     }
   }
@@ -118,7 +118,7 @@ function previewFile(input) {
 
     var params = {
       "key": name,
-      "bucket": "b1-bucket-11-26",
+      "bucket": "b2-bucket-11-26",
       "Content-Type": "image/jpg",
     };
 
