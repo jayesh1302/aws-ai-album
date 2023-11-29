@@ -7,7 +7,7 @@ STACK_NAME_P1="P1"
 STACK_NAME_P2="P2"
 STACK_NAMES=($STACK_NAME_P1 $STACK_NAME_P2)
 
-BUCKET_NAMES=("p1-bucket-11-26" "p2-bucket-11-26" "aws-ai-album-11-26")
+BUCKET_NAMES=("p1-bucket-11-26" "p2-bucket-11-26" "b1-bucket-11-26")
 set -eu
 
 # check if the flag -d presented, if so then delete the stack

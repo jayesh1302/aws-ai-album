@@ -17,6 +17,9 @@ Parameters:
   ApplicationStackName:
     Type: String
     Default: P2
+  FrontendBucket:
+    Type: String
+    Default: b1-bucket-11-26
 
 Resources:
   PipelineArtifactsBucket:
@@ -103,7 +106,7 @@ Resources:
   B1:
     Type: "AWS::S3::Bucket"
     Properties:
-      BucketName: aws-ai-album-11-26
+      BucketName: !Ref FrontendBucket
       WebsiteConfiguration:
         IndexDocument: index.html
         ErrorDocument: error.html
