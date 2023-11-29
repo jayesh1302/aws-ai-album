@@ -1,0 +1,393 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Test
+
+Parameters:
+  StageName:
+    Type: String
+    Default: v1
+  KeyName:
+    Type: String
+    Default: apiKey
+  UploadBucket:
+    Type: String
+    Default: b2-bucket-11-26
+Resources:
+  LF1:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        ZipFile:
+          Fn::Join:
+            - "\n"
+            - - "'use strict';"
+              - ""
+              - "// Greeter Lambda"
+              - "exports.handler = (event, context, callback) => {"
+              - "  console.log('Event:', JSON.stringify(event));"
+              - "  const name = event.name || 'World';"
+              - "  const response = {greeting: `Hello, ${name}!`};"
+              - "  callback(null, response);"
+              - "};"
+      Description: "A greeting function"
+      FunctionName: "Test-LF1"
+      Handler: "index.handler"
+      Role:
+        Fn::GetAtt: ["LambdaExecutionRole", "Arn"]
+      Runtime: "nodejs18.x"
+
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service: ["lambda.amazonaws.com"]
+            Action: ["sts:AssumeRole"]
+      ManagedPolicyArns:
+        ["arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"]
+  B2:
+    Type: "AWS::S3::Bucket"
+    Properties:
+      BucketName: !Ref UploadBucket
+
+  ApiGatewayS3ProxyRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - apigateway.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Policies:
+        - PolicyName: s3
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:PutObject
+                Resource:
+                  - !Sub "arn:aws:s3:::${UploadBucket}"
+                  - !Sub "arn:aws:s3:::${UploadBucket}/*"
+
+  LambdaPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: "lambda:invokeFunction"
+      FunctionName:
+        Fn::GetAtt: ["LF1", "Arn"]
+      Principal: "apigateway.amazonaws.com"
+      SourceArn:
+        Fn::Join:
+          - ""
+          - - "arn:aws:execute-api:"
+            - Ref: "AWS::Region"
+            - ":"
+            - Ref: "AWS::AccountId"
+            - ":"
+            - Ref: "APIGateway"
+            - "/*"
+
+  APIGateway:
+    Type: AWS::ApiGateway::RestApi
+    Properties:
+      Name: AI Album APIs
+      Description: APIs for AI Album
+      ApiKeySourceType: HEADER
+      Body:
+        swagger: "2.0"
+        info:
+          description: "AI Photo Search application"
+          version: "1.0.0"
+          title: "AI Photo Search"
+        basePath: "/v1"
+        schemes:
+          - "https"
+        paths:
+          /search:
+            get:
+              operationId: "searchPhotos"
+              consumes:
+                - "application/json"
+              produces:
+                - "application/json"
+              parameters:
+                - name: "q"
+                  in: "query"
+                  required: false
+                  type: "string"
+              responses:
+                "200":
+                  description: "200 response"
+                  schema:
+                    $ref: "#/definitions/SearchResponse"
+                  headers:
+                    Access-Control-Allow-Origin:
+                      type: "string"
+                "500":
+                  description: "500 response"
+                  schema:
+                    $ref: "#/definitions/Error"
+                "403":
+                  description: "403 response"
+                  schema:
+                    $ref: "#/definitions/Error"
+              x-amazon-apigateway-integration:
+                httpMethod: "POST"
+                uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LF1.Arn}/invocations"
+                responses:
+                  default:
+                    statusCode: "200"
+                    responseParameters:
+                      method.response.header.Access-Control-Allow-Origin: "'*'"
+                requestParameters:
+                  integration.request.querystring.q: "method.request.querystring.q"
+                requestTemplates:
+                  application/json: '{ "q": "$input.params(''q'')" }'
+                passthroughBehavior: "when_no_templates"
+                contentHandling: "CONVERT_TO_TEXT"
+                type: "aws"
+            options:
+              consumes:
+                - "application/json"
+              produces:
+                - "application/json"
+              responses:
+                "200":
+                  description: "200 response"
+                  headers:
+                    Access-Control-Allow-Origin:
+                      type: "string"
+                    Access-Control-Allow-Methods:
+                      type: "string"
+                    Access-Control-Allow-Headers:
+                      type: "string"
+              x-amazon-apigateway-integration:
+                responses:
+                  default:
+                    statusCode: "200"
+                    responseParameters:
+                      method.response.header.Access-Control-Allow-Methods: "'GET,OPTIONS'"
+                      method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+                      method.response.header.Access-Control-Allow-Origin: "'*'"
+                requestTemplates:
+                  application/json: '{"statusCode": 200}'
+                passthroughBehavior: "when_no_match"
+                type: "mock"
+          /upload:
+            options:
+              consumes:
+                - "application/json"
+              produces:
+                - "application/json"
+              responses:
+                "200":
+                  description: "200 response"
+                  headers:
+                    Access-Control-Allow-Origin:
+                      type: "string"
+                    Access-Control-Allow-Methods:
+                      type: "string"
+                    Access-Control-Allow-Headers:
+                      type: "string"
+              x-amazon-apigateway-integration:
+                responses:
+                  default:
+                    statusCode: "200"
+                    responseParameters:
+                      method.response.header.Access-Control-Allow-Methods: "'OPTIONS'"
+                      method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+                      method.response.header.Access-Control-Allow-Origin: "'*'"
+                requestTemplates:
+                  application/json: '{"statusCode": 200}'
+                passthroughBehavior: "when_no_match"
+                type: "mock"
+          /upload/{bucket}:
+            options:
+              consumes:
+                - "application/json"
+              produces:
+                - "application/json"
+              parameters:
+                - name: "bucket"
+                  in: "path"
+                  required: true
+                  type: "string"
+              responses:
+                "200":
+                  description: "200 response"
+                  headers:
+                    Access-Control-Allow-Origin:
+                      type: "string"
+                    Access-Control-Allow-Methods:
+                      type: "string"
+                    Access-Control-Allow-Headers:
+                      type: "string"
+              x-amazon-apigateway-integration:
+                responses:
+                  default:
+                    statusCode: "200"
+                    responseParameters:
+                      method.response.header.Access-Control-Allow-Methods: "'OPTIONS'"
+                      method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+                      method.response.header.Access-Control-Allow-Origin: "'*'"
+                requestTemplates:
+                  application/json: '{"statusCode": 200}'
+                passthroughBehavior: "when_no_match"
+                type: "mock"
+          /upload/{bucket}/{key}:
+            put:
+              produces:
+                - "image/*"
+                - "application/json"
+              parameters:
+                - name: "Content-Type"
+                  in: "header"
+                  required: false
+                  type: "string"
+                - name: "key"
+                  in: "path"
+                  required: true
+                  type: "string"
+                - name: "bucket"
+                  in: "path"
+                  required: true
+                  type: "string"
+              responses:
+                "200":
+                  description: "200 response"
+                  schema:
+                    $ref: "#/definitions/Photo"
+              x-amazon-apigateway-integration:
+                credentials: !GetAtt ApiGatewayS3ProxyRole.Arn
+                httpMethod: "PUT"
+                uri: "arn:aws:apigateway:us-east-1:s3:path/{bucket}/{key}"
+                responses:
+                  default:
+                    statusCode: "200"
+                requestParameters:
+                  integration.request.path.key: "method.request.path.key"
+                  integration.request.path.bucket: "method.request.path.bucket"
+                  integration.request.header.Content-Type: "method.request.header.Content-Type"
+                passthroughBehavior: "when_no_match"
+                contentHandling: "CONVERT_TO_BINARY"
+                type: "aws"
+            options:
+              consumes:
+                - "application/json"
+              produces:
+                - "application/json"
+              parameters:
+                - name: "bucket"
+                  in: "path"
+                  required: true
+                  type: "string"
+                - name: "key"
+                  in: "path"
+                  required: true
+                  type: "string"
+              responses:
+                "200":
+                  description: "200 response"
+                  headers:
+                    Access-Control-Allow-Origin:
+                      type: "string"
+                    Access-Control-Allow-Methods:
+                      type: "string"
+                    Access-Control-Allow-Headers:
+                      type: "string"
+              x-amazon-apigateway-integration:
+                responses:
+                  default:
+                    statusCode: "200"
+                    responseParameters:
+                      method.response.header.Access-Control-Allow-Methods: "'OPTIONS,PUT'"
+                      method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+                      method.response.header.Access-Control-Allow-Origin: "'*'"
+                requestTemplates:
+                  application/json: '{"statusCode": 200}'
+                passthroughBehavior: "when_no_match"
+                type: "mock"
+        definitions:
+          Error:
+            type: "object"
+            properties:
+              code:
+                type: "integer"
+                format: "int32"
+              message:
+                type: "string"
+          Photo:
+            type: "object"
+            properties:
+              url:
+                type: "string"
+              labels:
+                type: "array"
+                items:
+                  type: "string"
+          SearchResponse:
+            type: "object"
+            properties:
+              results:
+                type: "array"
+                items:
+                  $ref: "#/definitions/Photo"
+        x-amazon-apigateway-binary-media-types:
+          - "image/jpeg"
+          - "image/jpg"
+          - "image/png"
+          - "image/*"
+
+  APIStage:
+    Type: AWS::ApiGateway::Stage
+    Properties:
+      DeploymentId: !Ref ApiDeployment
+      RestApiId: !Ref APIGateway
+      StageName: !Ref StageName
+
+  ApiDeployment:
+    Type: AWS::ApiGateway::Deployment
+    Properties:
+      RestApiId: !Ref APIGateway
+
+  TestAPIUsagePlan:
+    Type: AWS::ApiGateway::UsagePlan
+    DependsOn:
+      - APIGateway
+    Properties:
+      ApiStages:
+        - ApiId: !Ref APIGateway
+          Stage: !Ref APIStage
+      Description: To test usage plan and api key in REST API.
+      Quota:
+        Limit: 100
+        Period: MONTH
+      UsagePlanName: "test-usage-plan"
+
+  TestApiAccessKey:
+    Type: AWS::ApiGateway::ApiKey
+    DependsOn:
+      - APIGateway
+    Properties:
+      Name: !Ref KeyName
+      Description: To test usage plan and api key in REST API.
+      Enabled: true
+
+  LinkUsagePlanApiKey:
+    Type: AWS::ApiGateway::UsagePlanKey
+    Properties:
+      KeyId: !Ref TestApiAccessKey
+      KeyType: API_KEY
+      UsagePlanId: !Ref TestAPIUsagePlan
+
+Outputs:
+  ApiRootUrl:
+    Description: Root Url of the API
+    Value: !Sub "https://${APIGateway}.execute-api.${AWS::Region}.amazonaws.com/${StageName}"
