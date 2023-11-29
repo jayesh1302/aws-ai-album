@@ -1,0 +1,11 @@
+version: 0.2
+phases:
+  build:
+    commands:
+      - pip install --target lambda_functions/LF2 -r lambda_functions/LF2/requirements.txt
+
+artifacts:
+  base-directory: lambda_functions/LF2
+  files:
+    - "**/*"
+  type: zip

@@ -22,8 +22,9 @@ Resources:
   PipelineArtifactsBucket:
     Type: AWS::S3::Bucket
     Properties:
+      BucketName: p2-bucket-11-26
       VersioningConfiguration:
-        Status: Enabled
+        Status: Suspended
 
   CodeBuildProject:
     Type: AWS::CodeBuild::Project
@@ -47,7 +48,7 @@ Resources:
         Type: S3
         Location: !Ref PipelineArtifactsBucket
       RestartExecutionOnUpdate: true
-      RoleArn: !GetAtt P2Role.Arn
+      RoleArn: !GetAtt CodepipelineRole.Arn
       Stages:
         - Name: Source
           Actions:
@@ -146,7 +147,7 @@ Resources:
       TargetAction: Source
       TargetPipelineVersion: !GetAtt P2.Version
 
-  P2Role:
+  CodepipelineRole:
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
@@ -319,38 +320,3 @@ Outputs:
       - B1
       - WebsiteURL
     Description: Static website URL
-  CodepipelineRole:
-    Value:
-      Ref: P2Role
-    Export:
-      Name:
-        Fn::Sub: "CodepipelineRole"
-  GitHubOwner:
-    Value:
-      Ref: GitHubOwner
-    Export:
-      Name:
-        Fn::Sub: "GithubOwner"
-  GitHubRepo:
-    Value:
-      Ref: GitHubRepo
-    Export:
-      Name:
-        Fn::Sub: "GitHubRepo"
-  GitHubBranch:
-    Value:
-      Ref: GitHubBranch
-    Export:
-      Name:
-        Fn::Sub: "GitHubBranch"
-  GitHubOAuthToken:
-    Value:
-      Ref: GitHubOAuthToken
-    Export:
-      Name:
-        Fn::Sub: "GitHubOAuthToken"
-  CodeBuildRoleArn:
-    Value: !GetAtt CodeBuildRole.Arn
-    Export:
-      Name:
-        Fn::Sub: "CodeBuildRoleArn"
