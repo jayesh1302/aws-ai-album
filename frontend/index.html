@@ -1,105 +1,70 @@
 <!DOCTYPE html>
-<html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Album</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-        }
+    <meta charset="utf-8">
+    <title>PicPiper</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.css">
 
-        #results {
-            margin-top: 20px;
-        }
-    </style>
+    <link rel="stylesheet" href="style.css">
+
+
+    <!-- Smart Photo Album code -->
+
+
 </head>
 
-<body>
-    <h1>AI Album</h1>
+<body class="mainmain">
+    <center>
 
-    <h2>Search Photos</h2>
-    <label for="searchQuery">Search Query:</label>
-    <input type="text" id="searchQuery">
-    <button onclick="searchPhotos()">Search</button>
+        <div class="mainsection">
 
-    <div id="searchResults"></div>
+            <div class="child">
+                <header class="page-header">
+                    <h1>PIC-PIPER!</h1>
+                </header>
 
-    <h2>Upload Photo</h2>
-    <form enctype="multipart/form-data" id="uploadForm">
-        <label for="photo">Choose a photo:</label>
-        <input type="file" id="photo" accept="image/*" required>
-        <br>
-        <label for="customLabels">Custom Labels (comma-separated):</label>
-        <input type="text" id="customLabels">
-        <br>
-        <button type="button" onclick="uploadPhoto()">Upload</button>
-    </form>
+                <div class="bar">
+                    <input style="display:inline-block;" id="searchbar" class="searchbar" type="text" title="Search">
+                    <span><a style="display:inline-block;" href="#" onclick="searchFromVoice()"> <img class="voice"
+                                style="display:inline;"
+                                src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e8/Google_mic.svg/716px-Google_mic.svg.png"
+                                title="Search by Voice"></a></span>
+                </div>
 
-    <div id="uploadResults"></div>
+                <div class="buttons">
+                    <input type="file" id="realfile" onchange="previewFile(this);" hidden="hidden" />
+                    <button onclick="search()" class="button" type="button">Search Image</button>
+                    <button onclick="uploadImage()" class="button" type="button">Upload Image</button>
 
-    <script>
-        const apiEndpoint = 'https://your-api-endpoint';
+                </div>
 
-        function searchPhotos() {
-            const searchQuery = document.getElementById('searchQuery').value;
-            const resultsDiv = document.getElementById('searchResults');
-            fetch(`${apiEndpoint}/search?query=${searchQuery}`)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! Status: ${response.status}`);
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    // Update the results section with the retrieved photos
-                    resultsDiv.innerHTML = '';
-                    data.photos.forEach(photo => {
-                        resultsDiv.innerHTML += `<img src="${photo.url}" alt="Photo">`;
-                    });
-                })
-                .catch(error => {
-                    console.error('Error during search:', error);
-                    resultsDiv.innerHTML = 'Error during search. Please try again.';
-                });
-        }
+            </div>
+        </div>
 
-        function uploadPhoto() {
-            const fileInput = document.getElementById('photo');
-            const customLabelsInput = document.getElementById('customLabels');
-            const file = fileInput.files[0];
-            const customLabels = customLabelsInput.value;
+        <div class="container" id="images">
+        </div>
 
-            const formData = new FormData();
-            formData.append('photo', file);
+        <script src="index.js"></script>
+        <script src="https://cdn.rawgit.com/mattdiamond/Recorderjs/08e7abd9/dist/recorder.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+        <script class="jsbin" src="https://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
+        <script type="text/javascript" src="lib/axios/dist/axios.standalone.js"></script>
+        <script type="text/javascript" src="lib/CryptoJS/rollups/hmac-sha256.js"></script>
+        <script type="text/javascript" src="lib/CryptoJS/rollups/sha256.js"></script>
+        <script type="text/javascript" src="lib/CryptoJS/components/hmac.js"></script>
+        <script type="text/javascript" src="lib/CryptoJS/components/enc-base64.js"></script>
+        <script type="text/javascript" src="lib/url-template/url-template.js"></script>
+        <script type="text/javascript" src="lib/apiGatewayCore/sigV4Client.js"></script>
+        <script type="text/javascript" src="lib/apiGatewayCore/apiGatewayClient.js"></script>
+        <script type="text/javascript" src="lib/apiGatewayCore/simpleHttpClient.js"></script>
+        <script type="text/javascript" src="lib/apiGatewayCore/utils.js"></script>
+        <script type="text/javascript" src="apigClient.js"></script>
 
-            // Set x-amz-meta-customLabels header
-            const headers = new Headers();
-            headers.append('x-amz-meta-customLabels', customLabels);
 
-            const resultsDiv = document.getElementById('uploadResults');
-            fetch(`${apiEndpoint}/photos`, {
-                method: 'PUT',
-                headers: headers,
-                body: formData
-            })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! Status: ${response.status}`);
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    resultsDiv.innerHTML = 'Photo uploaded successfully';
-                })
-                .catch(error => {
-                    resultsDiv.innerHTML = 'Error during photo upload';
-                });
-            fileInput.value = '';
-            customLabelsInput.value = '';
-        }
-    </script>
+    </center>
+
 </body>
 
 </html>
