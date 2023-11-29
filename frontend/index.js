@@ -5,7 +5,7 @@ var SpeechRecognition = window.webkitSpeechRecognition || window.SpeechRecogniti
 const synth = window.speechSynthesis;
 const recognition = new SpeechRecognition();
 const icon = document.querySelector('i.fa.fa-microphone');
-
+var apiKeySec = "CE8x5HdMFdKs3EWzQAYM6wLS9LRQL1G9pACfqy02"
 
 ///// SEARCH TRIGGER //////
 function searchFromVoice() {
@@ -20,23 +20,25 @@ function searchFromVoice() {
 
 function search() {
   var searchTerm = document.getElementById("searchbar").value;
-  var apigClient = apigClientFactory.newClient({ apiKey: "3TX4JSS1syaieUQvBLq0gqWfJfEHiTH7woeUrkt8" });
+  var apigClient = apigClientFactory.newClient({ apiKey: apiKeySec });
 
 
-    var body = { };
-    var params = {q : searchTerm};
-    var additionalParams = {headers: {
-    'Content-Type':"application/json"
-    }};
+  var body = {};
+  var params = { q: searchTerm };
+  var additionalParams = {
+    headers: {
+      'Content-Type': "application/json"
+    }
+  };
 
-    apigClient.searchGet(params, body , additionalParams).then(function(res){
-        console.log("success");
-        console.log(res);
-        showImages(res.data)
-      }).catch(function(result){
-          console.log(result);
-          console.log("NO RESULT");
-      });
+  apigClient.searchGet(params, body, additionalParams).then(function (res) {
+    console.log("success");
+    console.log(res);
+    showImages(res.data)
+  }).catch(function (result) {
+    console.log(result);
+    console.log("NO RESULT");
+  });
 
 }
 
@@ -45,29 +47,29 @@ function search() {
 
 function showImages(res) {
   var newDiv = document.getElementById("images");
-  if(typeof(newDiv) != 'undefined' && newDiv != null){
-  while (newDiv.firstChild) {
-    newDiv.removeChild(newDiv.firstChild);
+  if (typeof (newDiv) != 'undefined' && newDiv != null) {
+    while (newDiv.firstChild) {
+      newDiv.removeChild(newDiv.firstChild);
+    }
   }
-  }
-  
+
   console.log(res);
   if (res.length == 0) {
     var newContent = document.createTextNode("No image to display");
     newDiv.appendChild(newContent);
   }
   else {
-    results=res.body.imagePaths
+    results = res.body.imagePaths
     for (var i = 0; i < results.length; i++) {
       console.log(results[i]);
       var newDiv = document.getElementById("images");
       //newDiv.style.display = 'inline'
       var newimg = document.createElement("img");
       var classname = randomChoice(['big', 'vertical', 'horizontal', '']);
-      if(classname){newimg.classList.add();}
-      
-      filename = results[i].substring(results[i].lastIndexOf('/')+1)
-      newimg.src = "https://pipebucketcloud.s3.amazonaws.com/"+filename;
+      if (classname) { newimg.classList.add(); }
+
+      filename = results[i].substring(results[i].lastIndexOf('/') + 1)
+      newimg.src = "https://b1-bucket-11-26.s3.amazonaws.com/" + filename;
       newDiv.appendChild(newimg);
     }
   }
@@ -84,23 +86,23 @@ function randomChoice(arr) {
 const realFileBtn = document.getElementById("realfile");
 
 function uploadImage() {
-  realFileBtn.click(); 
+  realFileBtn.click();
 }
 
 function previewFile(input) {
   var reader = new FileReader();
   name = input.files[0].name;
   fileExt = name.split(".").pop();
-  
+
   console.log(fileExt)
   console.log("THIS IS THE EXTENSION!!")
 
   var onlyname = name.replace(/\.[^/.]+$/, "");
-  var finalName = onlyname+"."+fileExt;
+  var finalName = onlyname + "." + fileExt;
   name = finalName;
 
   reader.onload = function (e) {
-    var src = e.target.result;    
+    var src = e.target.result;
     var newImage = document.createElement("img");
     newImage.src = src;
     encoded = newImage.outerHTML;
@@ -112,12 +114,12 @@ function previewFile(input) {
     else {
       encodedStr = encoded.substring(32, last_index_quote);
     }
-    var apigClient = apigClientFactory.newClient({ apiKey: "3TX4JSS1syaieUQvBLq0gqWfJfEHiTH7woeUrkt8" });
+    var apigClient = apigClientFactory.newClient({ apiKey: apiKeySec });
 
     var params = {
-        "key": name,
-        "bucket": "pipebucketcloud",
-        "Content-Type": "image/jpg",
+      "key": name,
+      "bucket": "b1-bucket-11-26",
+      "Content-Type": "image/jpg",
     };
 
     var additionalParams = {
@@ -134,6 +136,6 @@ function previewFile(input) {
       }).catch(function (result) {
         console.log(result);
       });
-    }
-   reader.readAsDataURL(input.files[0]);
+  }
+  reader.readAsDataURL(input.files[0]);
 }
