@@ -1,9 +1,7 @@
 #!/bin/bash
 
 # create an array of two github oauth tokens that take from the command line
-GITHUB_AUTH_TOKEN_1=$1
-GITHUB_AUTH_TOKEN_2=$2
-GITHUB_AUTH_TOKENS=($GITHUB_AUTH_TOKEN_1 $GITHUB_AUTH_TOKEN_2)
+GITHUB_AUTH_TOKEN=$1
 
 STACK_NAME_P1="P1"
 STACK_NAME_P2="P2"
@@ -48,14 +46,14 @@ else
                         aws cloudformation update-stack \
                                 --capabilities CAPABILITY_IAM \
                                 --stack-name ${STACK_NAMES[$idx]} \
-                                --parameters ParameterKey=GitHubOAuthToken,ParameterValue=${GITHUB_AUTH_TOKENS[$idx]} \
+                                --parameters ParameterKey=GitHubOAuthToken,ParameterValue=$GITHUB_AUTH_TOKEN \
                                 --template-body file://${STACK_NAMES[$idx]}.yaml
                 else
                         echo "Creating new stack..."
                         aws cloudformation create-stack \
                                 --capabilities CAPABILITY_IAM \
                                 --stack-name ${STACK_NAMES[$idx]} \
-                                --parameters ParameterKey=GitHubOAuthToken,ParameterValue=${GITHUB_AUTH_TOKENS[$idx]} \
+                                --parameters ParameterKey=GitHubOAuthToken,ParameterValue=$GITHUB_AUTH_TOKEN \
                                 --template-body file://${STACK_NAMES[$idx]}.yaml
                 fi
         done
