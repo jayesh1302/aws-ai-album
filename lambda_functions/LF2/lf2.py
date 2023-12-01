@@ -81,6 +81,7 @@ def get_keywords(inputstr):
     
 def get_image_locations(keywords):
     endpoint = os.getenv('ES_ENDPOINT')
+    endpoint += '/_search'
     headers = {'Content-Type': 'application/json'}
     
     region = 'us-east-1' 

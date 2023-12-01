@@ -343,8 +343,6 @@ Resources:
                     "ObjectKey1" : { "Fn::GetArtifactAtt" : ["BuildOutput1", "ObjectKey"]},
                     "BucketName2" : { "Fn::GetArtifactAtt" : ["BuildOutput2", "BucketName"]},
                     "ObjectKey2" : { "Fn::GetArtifactAtt" : ["BuildOutput2", "ObjectKey"]},
-                    "LFRoleArn": { "Fn::GetAttr" : ["LFRole", "Arn"],
-                    "OpensearchDomainEndpoint: { "Fn::GetAttr" : ["Opensearch", "Arn"]}
                   }
               RunOrder: 1
 

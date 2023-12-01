@@ -18,9 +18,9 @@ Parameters:
     Default: b2-bucket-11-26
   OpensearchDomainEndpoint:
     Type: String
-    Default: NA
+    Default: https://search-photos-iqnht2dwn4nwyktpgelc2zhqeu.us-east-1.es.amazonaws.com
   LFRoleArn:
-    Type: String
+    Type: arn:aws:iam::764559909612:role/LFRole
 
 Resources:
   LF1:
