@@ -13,42 +13,44 @@ Parameters:
   ObjectKey2:
     Type: String
     Default: NA
+  UploadBucket:
+    Type: String
+    Default: b2-bucket-11-26
+  OpensearchDomainEndpoint:
+    Type: String
+    Default: NA
+  LFRoleArn:
+    Type: String
 
 Resources:
   LF1:
     Type: AWS::Lambda::Function
     Properties:
       FunctionName: LF1
-      Handler: "lambda_function.lambda_handler"
-      Role: !GetAtt LFRole.Arn
-      Runtime: "python3.9"
+      Handler: "lf1.lambda_handler"
+      Role: !Ref LFRoleArn
+      Runtime: "python3.11"
       Timeout: 15
       MemorySize: 128
       Code:
         S3Bucket: !Ref BucketName1
         S3Key: !Ref ObjectKey1
+      Environment:
+        Variables:
+          BUCKET_NAME: !Ref UploadBucket
+          ES_ENDPOINT: !Ref OpensearchDomainEndpoint
   LF2:
     Type: AWS::Lambda::Function
     Properties:
       FunctionName: LF2
-      Handler: "lambda_function.lambda_handler"
-      Role: !GetAtt LFRole.Arn
-      Runtime: "python3.9"
+      Handler: "lf2.lambda_handler"
+      Role: !Ref LFRoleArn
+      Runtime: "python3.11"
       Timeout: 15
       MemorySize: 128
       Code:
         S3Bucket: !Ref BucketName2
         S3Key: !Ref ObjectKey2
-
-  LFRole:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          Effect: Allow
-          Principal:
-            Service: lambda.amazonaws.com
-          Action: sts:AssumeRole
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/AdministratorAccess
+      Environment:
+        Variables:
+          ES_ENDPOINT: !Ref OpensearchDomainEndpoint

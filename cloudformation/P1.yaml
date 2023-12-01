@@ -17,128 +17,15 @@ Parameters:
   ApplicationStackName:
     Type: String
     Default: P1-LF
+  P1BucketName:
+    Type: String
+    Default: p1-bucket-11-26
+  KmsKeyForOpensearch:
+    Type: String
+    Default: f93dc4ce-8f86-41e5-b564-589acbc92347
 
 Resources:
-  CodeBuildProject1:
-    Type: AWS::CodeBuild::Project
-    Properties:
-      Artifacts:
-        Type: CODEPIPELINE
-      Source:
-        Type: CODEPIPELINE
-        BuildSpec: lambda_functions/LF1/buildspec.yml
-      Environment:
-        ComputeType: BUILD_GENERAL1_SMALL
-        Image: aws/codebuild/standard:4.0
-        Type: LINUX_CONTAINER
-      ServiceRole: !GetAtt CodeBuildRole.Arn
-
-  CodeBuildProject2:
-    Type: AWS::CodeBuild::Project
-    Properties:
-      Artifacts:
-        Type: CODEPIPELINE
-      Source:
-        Type: CODEPIPELINE
-        BuildSpec: lambda_functions/LF2/buildspec.yml
-      Environment:
-        ComputeType: BUILD_GENERAL1_SMALL
-        Image: aws/codebuild/standard:4.0
-        Type: LINUX_CONTAINER
-      ServiceRole: !GetAtt CodeBuildRole.Arn
-
-  PipelineArtifactsBucket:
-    Type: AWS::S3::Bucket
-    Properties:
-      BucketName: p1-bucket-11-26
-      VersioningConfiguration:
-        Status: Suspended
-  P1:
-    Type: AWS::CodePipeline::Pipeline
-    Properties:
-      ArtifactStore:
-        Type: S3
-        Location: !Ref PipelineArtifactsBucket
-      RestartExecutionOnUpdate: true
-      RoleArn: !GetAtt CodepipelineRole.Arn
-      Stages:
-        - Name: Source
-          Actions:
-            - Name: Source
-              InputArtifacts: []
-              ActionTypeId:
-                Category: Source
-                Owner: ThirdParty
-                Version: 1
-                Provider: GitHub
-              Configuration:
-                Owner: !Ref GitHubOwner
-                Repo: !Ref GitHubRepo
-                Branch: !Ref GitHubBranch
-                PollForSourceChanges: false
-                OAuthToken: !Ref GitHubOAuthToken
-              OutputArtifacts:
-                - Name: SourceCode
-              RunOrder: 1
-
-        - Name: Build
-          Actions:
-            - Name: BuildAction_LF1
-              ActionTypeId:
-                Category: Build
-                Owner: AWS
-                Version: 1
-                Provider: CodeBuild
-              Configuration:
-                ProjectName: !Ref CodeBuildProject1
-              InputArtifacts:
-                - Name: SourceCode
-              OutputArtifacts:
-                - Name: BuildOutput1
-              RunOrder: 1
-
-            - Name: BuildAction_LF2
-              ActionTypeId:
-                Category: Build
-                Owner: AWS
-                Version: 1
-                Provider: CodeBuild
-              Configuration:
-                ProjectName: !Ref CodeBuildProject2
-              InputArtifacts:
-                - Name: SourceCode
-              OutputArtifacts:
-                - Name: BuildOutput2
-              RunOrder: 2
-
-        - Name: Deploy
-          Actions:
-            - Name: CloudFormationDeploy
-              ActionTypeId:
-                Category: Deploy
-                Owner: AWS
-                Provider: CloudFormation
-                Version: "1"
-              InputArtifacts:
-                - Name: SourceCode
-                - Name: BuildOutput1
-                - Name: BuildOutput2
-              Configuration:
-                ActionMode: CREATE_UPDATE
-                Capabilities: CAPABILITY_IAM
-                RoleArn: !GetAtt CloudformationRole.Arn
-                StackName: !Ref ApplicationStackName
-                TemplatePath: !Sub "SourceCode::cloudformation/P1_LF.yaml"
-                ParameterOverrides: |
-                  {
-                    "BucketName1" : { "Fn::GetArtifactAtt" : ["BuildOutput1", "BucketName"]},
-                    "ObjectKey1" : { "Fn::GetArtifactAtt" : ["BuildOutput1", "ObjectKey"]},
-                    "BucketName2" : { "Fn::GetArtifactAtt" : ["BuildOutput2", "BucketName"]},
-                    "ObjectKey2" : { "Fn::GetArtifactAtt" : ["BuildOutput2", "ObjectKey"]}
-                  }
-              RunOrder: 1
-
-  CloudformationRole:
+  LFRole:
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
@@ -146,11 +33,38 @@ Resources:
         Statement:
           Effect: Allow
           Principal:
-            Service: cloudformation.amazonaws.com
+            Service: lambda.amazonaws.com
           Action: sts:AssumeRole
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AdministratorAccess
-
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+  Opensearch:
+    Type: AWS::OpenSearchService::Domain
+    Properties:
+      AdvancedSecurityOptions:
+        Enabled: true
+        MasterUserOptions:
+          MasterUserARN: !GetAtt LFRole.Arn
+      ClusterConfig:
+        DedicatedMasterEnabled: true
+        DedicatedMasterType: t3.small.search
+        InstanceType: t3.small.search
+      DomainEndpointOptions:
+        EnforceHTTPS: true
+      EncryptionAtRestOptions:
+        Enabled: true
+        KmsKeyId: !Sub "${KmsKeyForOpensearch}"
+      DomainName: photos
+      EBSOptions:
+        EBSEnabled: true
+        Iops: 3000
+        VolumeSize: 10
+        VolumeType: gp3
+      NodeToNodeEncryptionOptions:
+        Enabled: true
+  #
+  # ---------- CODEPIPELINE ----------
+  #
   CodeBuildRole:
     Type: AWS::IAM::Role
     Properties:
@@ -316,3 +230,133 @@ Resources:
                   - appconfig:StopDeployment
                   - appconfig:GetDeployment
                 Resource: "*"
+  CodeBuildProject1:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Artifacts:
+        Type: CODEPIPELINE
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: lambda_functions/LF1/buildspec.yml
+      Environment:
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: aws/codebuild/standard:4.0
+        Type: LINUX_CONTAINER
+      ServiceRole: !GetAtt CodeBuildRole.Arn
+  CodeBuildProject2:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Artifacts:
+        Type: CODEPIPELINE
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: lambda_functions/LF2/buildspec.yml
+      Environment:
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: aws/codebuild/standard:4.0
+        Type: LINUX_CONTAINER
+      ServiceRole: !GetAtt CodeBuildRole.Arn
+  PipelineArtifactsBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref P1BucketName
+      VersioningConfiguration:
+        Status: Suspended
+  P1:
+    DependsOn:
+      - Opensearch
+    Type: AWS::CodePipeline::Pipeline
+    Properties:
+      ArtifactStore:
+        Type: S3
+        Location: !Ref PipelineArtifactsBucket
+      RestartExecutionOnUpdate: true
+      RoleArn: !GetAtt CodepipelineRole.Arn
+      Stages:
+        - Name: Source
+          Actions:
+            - Name: Source
+              InputArtifacts: []
+              ActionTypeId:
+                Category: Source
+                Owner: ThirdParty
+                Version: 1
+                Provider: GitHub
+              Configuration:
+                Owner: !Ref GitHubOwner
+                Repo: !Ref GitHubRepo
+                Branch: !Ref GitHubBranch
+                PollForSourceChanges: false
+                OAuthToken: !Ref GitHubOAuthToken
+              OutputArtifacts:
+                - Name: SourceCode
+              RunOrder: 1
+        - Name: Build
+          Actions:
+            - Name: BuildAction_LF1
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Version: 1
+                Provider: CodeBuild
+              Configuration:
+                ProjectName: !Ref CodeBuildProject1
+              InputArtifacts:
+                - Name: SourceCode
+              OutputArtifacts:
+                - Name: BuildOutput1
+              RunOrder: 1
+            - Name: BuildAction_LF2
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Version: 1
+                Provider: CodeBuild
+              Configuration:
+                ProjectName: !Ref CodeBuildProject2
+              InputArtifacts:
+                - Name: SourceCode
+              OutputArtifacts:
+                - Name: BuildOutput2
+              RunOrder: 2
+        - Name: Deploy
+          Actions:
+            - Name: CloudFormationDeploy
+              ActionTypeId:
+                Category: Deploy
+                Owner: AWS
+                Provider: CloudFormation
+                Version: "1"
+              InputArtifacts:
+                - Name: SourceCode
+                - Name: BuildOutput1
+                - Name: BuildOutput2
+              Configuration:
+                ActionMode: CREATE_UPDATE
+                Capabilities: CAPABILITY_IAM
+                RoleArn: !GetAtt CloudformationRole.Arn
+                StackName: !Ref ApplicationStackName
+                TemplatePath: !Sub "SourceCode::cloudformation/P1_LF.yaml"
+                ParameterOverrides: |
+                  {
+                    "BucketName1" : { "Fn::GetArtifactAtt" : ["BuildOutput1", "BucketName"]},
+                    "ObjectKey1" : { "Fn::GetArtifactAtt" : ["BuildOutput1", "ObjectKey"]},
+                    "BucketName2" : { "Fn::GetArtifactAtt" : ["BuildOutput2", "BucketName"]},
+                    "ObjectKey2" : { "Fn::GetArtifactAtt" : ["BuildOutput2", "ObjectKey"]},
+                    "LFRoleArn": { "Fn::GetAttr" : ["LFRole", "Arn"],
+                    "OpensearchDomainEndpoint: { "Fn::GetAttr" : ["Opensearch", "Arn"]}
+                  }
+              RunOrder: 1
+
+  CloudformationRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          Effect: Allow
+          Principal:
+            Service: cloudformation.amazonaws.com
+          Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AdministratorAccess
