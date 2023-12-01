@@ -342,7 +342,7 @@ Resources:
                     "BucketName1" : { "Fn::GetArtifactAtt" : ["BuildOutput1", "BucketName"]},
                     "ObjectKey1" : { "Fn::GetArtifactAtt" : ["BuildOutput1", "ObjectKey"]},
                     "BucketName2" : { "Fn::GetArtifactAtt" : ["BuildOutput2", "BucketName"]},
-                    "ObjectKey2" : { "Fn::GetArtifactAtt" : ["BuildOutput2", "ObjectKey"]},
+                    "ObjectKey2" : { "Fn::GetArtifactAtt" : ["BuildOutput2", "ObjectKey"]}
                   }
               RunOrder: 1
 
