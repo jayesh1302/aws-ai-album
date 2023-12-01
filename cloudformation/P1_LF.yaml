@@ -20,7 +20,8 @@ Parameters:
     Type: String
     Default: https://search-photos-iqnht2dwn4nwyktpgelc2zhqeu.us-east-1.es.amazonaws.com
   LFRoleArn:
-    Type: arn:aws:iam::764559909612:role/LFRole
+    Type: String
+    Default: arn:aws:iam::764559909612:role/LFRole
 
 Resources:
   LF1:

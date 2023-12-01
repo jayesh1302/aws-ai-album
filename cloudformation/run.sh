@@ -44,14 +44,14 @@ else
                 then
                         echo "Updating existing stack..."
                         aws cloudformation update-stack \
-                                --capabilities CAPABILITY_IAM \
+                                --capabilities CAPABILITY_NAMED_IAM \
                                 --stack-name ${STACK_NAMES[$idx]} \
                                 --parameters ParameterKey=GitHubOAuthToken,ParameterValue=$GITHUB_AUTH_TOKEN \
                                 --template-body file://${STACK_NAMES[$idx]}.yaml
                 else
                         echo "Creating new stack..."
                         aws cloudformation create-stack \
-                                --capabilities CAPABILITY_IAM \
+                                --capabilities CAPABILITY_NAMED_IAM \
                                 --stack-name ${STACK_NAMES[$idx]} \
                                 --parameters ParameterKey=GitHubOAuthToken,ParameterValue=$GITHUB_AUTH_TOKEN \
                                 --template-body file://${STACK_NAMES[$idx]}.yaml
