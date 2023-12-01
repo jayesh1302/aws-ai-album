@@ -3,7 +3,7 @@ import boto3
 import requests
 import time
 from requests_aws4auth import AWS4Auth
-
+import os
 # Initialize S3 client
 s3_client = boto3.client('s3')
 
@@ -29,9 +29,9 @@ def detect_labels(photo, bucket):
     return labels_res
 
 def lambda_handler(event, context):
-    print(event)
-    bucket = "b2jk7792"
-    elastic_url = "https://search-photos-iqnht2dwn4nwyktpgelc2zhqeu.us-east-1.es.amazonaws.com"
+    print('********** event **********    ',event)
+    bucket = os.getenv('BUCKET_NAME')
+    elastic_url = os.getenv('ES_ENDPOINT')
 
     region = 'us-east-1' 
     service = 'es'

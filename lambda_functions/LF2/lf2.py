@@ -1,16 +1,16 @@
 import json
 import boto3
 import time
-# from botocore.vendored import requests
 import requests
 from requests_aws4auth import AWS4Auth
+import os
 
 def lambda_handler(event, context):
     # TODO implement
     print('********** event **********    ',event)
   
-    # inputText = event["params"]["querystring"]["q"]
-    inputText = "Show me Woman"
+    inputText = event["params"]["querystring"]["q"]
+    # inputText = "Show me Woman"
     print('inputText  :  ', inputText)
     keywords = get_keywords(inputText)
     print('keywords ', keywords)
@@ -80,7 +80,7 @@ def get_keywords(inputstr):
     return keywords
     
 def get_image_locations(keywords):
-    endpoint = 'https://search-photos-iqnht2dwn4nwyktpgelc2zhqeu.us-east-1.es.amazonaws.com/_search'
+    endpoint = os.getenv('ES_ENDPOINT')
     headers = {'Content-Type': 'application/json'}
     
     region = 'us-east-1' 
