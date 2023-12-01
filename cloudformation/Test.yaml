@@ -33,7 +33,7 @@ Resources:
       Handler: "index.handler"
       Role:
         Fn::GetAtt: ["LambdaExecutionRole", "Arn"]
-      Runtime: "nodejs18.x"
+      Runtime: "python3.11"
 
   LambdaExecutionRole:
     Type: AWS::IAM::Role
@@ -51,6 +51,14 @@ Resources:
     Type: "AWS::S3::Bucket"
     Properties:
       BucketName: !Ref UploadBucket
+      CorsConfiguration:
+        CorsRules:
+          - AllowedHeaders:
+              - "*"
+            AllowedMethods:
+              - PUT
+            AllowedOrigins:
+              - "*"
 
   ApiGatewayS3ProxyRole:
     Type: AWS::IAM::Role
@@ -173,7 +181,7 @@ Resources:
                   default:
                     statusCode: "200"
                     responseParameters:
-                      method.response.header.Access-Control-Allow-Methods: "'GET,OPTIONS'"
+                      method.response.header.Access-Control-Allow-Methods: "'*'"
                       method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
                       method.response.header.Access-Control-Allow-Origin: "'*'"
                 requestTemplates:
@@ -201,7 +209,7 @@ Resources:
                   default:
                     statusCode: "200"
                     responseParameters:
-                      method.response.header.Access-Control-Allow-Methods: "'OPTIONS'"
+                      method.response.header.Access-Control-Allow-Methods: "'*'"
                       method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
                       method.response.header.Access-Control-Allow-Origin: "'*'"
                 requestTemplates:
@@ -234,7 +242,7 @@ Resources:
                   default:
                     statusCode: "200"
                     responseParameters:
-                      method.response.header.Access-Control-Allow-Methods: "'OPTIONS'"
+                      method.response.header.Access-Control-Allow-Methods: "'*'"
                       method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
                       method.response.header.Access-Control-Allow-Origin: "'*'"
                 requestTemplates:
@@ -262,6 +270,13 @@ Resources:
               responses:
                 "200":
                   description: "200 response"
+                  headers:
+                    Access-Control-Allow-Headers:
+                      type: "string"
+                    Access-Control-Allow-Methods:
+                      type: "string"
+                    Access-Control-Allow-Origin:
+                      type: "string"
                   schema:
                     $ref: "#/definitions/Photo"
               x-amazon-apigateway-integration:
@@ -271,6 +286,10 @@ Resources:
                 responses:
                   default:
                     statusCode: "200"
+                    responseParameters:
+                      method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key'"
+                      method.response.header.Access-Control-Allow-Methods: "'*'"
+                      method.response.header.Access-Control-Allow-Origin: "'*'"
                 requestParameters:
                   integration.request.path.key: "method.request.path.key"
                   integration.request.path.bucket: "method.request.path.bucket"
@@ -307,7 +326,7 @@ Resources:
                   default:
                     statusCode: "200"
                     responseParameters:
-                      method.response.header.Access-Control-Allow-Methods: "'OPTIONS,PUT'"
+                      method.response.header.Access-Control-Allow-Methods: "'*'"
                       method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
                       method.response.header.Access-Control-Allow-Origin: "'*'"
                 requestTemplates:
