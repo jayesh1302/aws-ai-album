@@ -1,22 +1,24 @@
 # aws-ai-album
 Assignment 3 for Cloud-Computing-AWS-CSGY-9223
+## System Diagram
+![system diagram](img/diagram.png)
+## How to use
 
-## How to deploy
-
+deploy the stack
 ```bash
 export AWS_DEFAULT_PROFILE=terraform
 export AWS_DEFAULT_REGION=us-east-1
-./cloudformation/run.sh <GITHUB_TOKEN_1> <GITHUB_TOKEN_2>
+./cloudformation/run.sh <GITHUB_TOKEN_1>
+# wait for the LF1 and LF2 get created on cloud before running the following command
+./cloudformation/run2.sh
+```
+****
+Tear down the stack
+```bash
+./cloudformation/run.sh -**d**
+./cloudformation/run2.sh -d
 ```
 
-P1 stack
-- OpenSearch
-- P1 -> P1_LF (LF1 LF2)
-
-P2 stack (P2, B1)
-- Api stack [depends_on: P1] (ApiGateway [LF2], B2)
-
-(optional?)
-git changes
-- add SDK1 to frontend
-- add OpenSearch URL to LF1
+## Demo
+![](img/example1.png)
+![](img/example2.png)
