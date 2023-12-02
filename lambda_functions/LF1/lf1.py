@@ -4,6 +4,7 @@ import requests
 import time
 from requests_aws4auth import AWS4Auth
 import os
+import base64
 # Initialize S3 client
 s3_client = boto3.client('s3')
 
@@ -11,8 +12,11 @@ def detect_labels(photo, bucket):
     labels_res = []
 
     client = boto3.client('rekognition')
+    s3_clientobj = s3_client.get_object(Bucket=bucket, Key=photo)
+    body=s3_clientobj['Body'].read().decode('utf-8')
+    image = base64.b64decode(body)    
 
-    response = client.detect_labels(Image={'S3Object':{'Bucket':bucket,'Name':photo}}, MaxLabels=10)
+    response = client.detect_labels(Image={'Bytes':image}, MaxLabels=10)
     print('Detected labels for ' + photo)
     for label in response['Labels']:
         print("Label: " + label['Name'])

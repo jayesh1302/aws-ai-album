@@ -9,7 +9,7 @@ def lambda_handler(event, context):
     # TODO implement
     print('********** event **********    ',event)
   
-    inputText = event["params"]["querystring"]["q"]
+    inputText = event["q"]
     # inputText = "Show me Woman"
     print('inputText  :  ', inputText)
     keywords = get_keywords(inputText)
@@ -53,7 +53,7 @@ def lambda_handler(event, context):
             'Access-Control-Allow-Origin':'*',
             'Access-Control-Allow-Credentials':True
         },
-        'body': {"results": image_array} 
+        'body': {"imagePaths": image_array} 
             # json.dumps(
             # # {"results":image_array}
             # )
