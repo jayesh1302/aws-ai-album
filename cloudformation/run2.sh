@@ -1,6 +1,6 @@
 #!/bin/bash
 
-STACK_NAMES=("Test")
+STACK_NAMES=("apiGateway")
 BUCKET_NAMES=("b2-bucket-11-26")
 
 if [ "$1" == "-d" ]; then
