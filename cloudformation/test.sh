@@ -15,7 +15,6 @@ if [ "$1" == "-d" ]; then
                 # if the bucket is empty, then delete the bucket
                 aws s3 rb s3://$BUCKET_NAME --force || echo "no bucket"
         done
-        aws cloudformation delete-stack --stack-name P1-LF
         for STACK_NAME in "${STACK_NAMES[@]}"
         do
                 echo "Deleting stack...${STACK_NAME}"
