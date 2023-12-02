@@ -11,9 +11,9 @@ Parameters:
   UploadBucket:
     Type: String
     Default: b2-bucket-11-26
-  LF1Arn:
+  LF2Arn:
     Type: String
-    Default: arn:aws:lambda:us-east-1:764559909612:function:LF1
+    Default: arn:aws:lambda:us-east-1:764559909612:function:LF2
 Resources:
   B2:
     Type: "AWS::S3::Bucket"
@@ -27,6 +27,19 @@ Resources:
               - PUT
             AllowedOrigins:
               - "*"
+      NotificationConfiguration:
+        LambdaConfigurations:
+          - Event: s3:ObjectCreated:Put
+            Function: !Ref LF2Arn
+
+  B2InvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref LF2Arn
+      Action: lambda:InvokeFunction
+      Principal: s3.amazonaws.com
+      SourceArn:
+        Fn::Sub: arn:aws:s3:::${UploadBucket}
 
   ApiGatewayS3ProxyRole:
     Type: AWS::IAM::Role
@@ -56,7 +69,7 @@ Resources:
     Type: AWS::Lambda::Permission
     Properties:
       Action: "lambda:invokeFunction"
-      FunctionName: !Ref LF1Arn
+      FunctionName: !Ref LF2Arn
       Principal: "apigateway.amazonaws.com"
       SourceArn:
         Fn::Join:
@@ -115,7 +128,7 @@ Resources:
                     $ref: "#/definitions/Error"
               x-amazon-apigateway-integration:
                 httpMethod: "POST"
-                uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LF1Arn}/invocations"
+                uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LF2Arn}/invocations"
                 responses:
                   default:
                     statusCode: "200"
