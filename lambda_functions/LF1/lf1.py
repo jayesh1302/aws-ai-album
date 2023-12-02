@@ -14,7 +14,10 @@ def detect_labels(photo, bucket):
     client = boto3.client('rekognition')
     s3_clientobj = s3_client.get_object(Bucket=bucket, Key=photo)
     body=s3_clientobj['Body'].read().decode('utf-8')
-    image = base64.b64decode(body)    
+    image = base64.b64decode(body)
+
+    response=s3_client.delete_object(Bucket=bucket,Key=photo)
+    response=s3_client.put_object(Bucket=bucket, Body=image, Key=photo,ContentType='image/jpg')
 
     response = client.detect_labels(Image={'Bytes':image}, MaxLabels=10)
     print('Detected labels for ' + photo)
