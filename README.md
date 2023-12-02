@@ -4,7 +4,7 @@ Assignment 3 for Cloud-Computing-AWS-CSGY-9223
 ![system diagram](img/diagram.png)
 ## How to use
 
-deploy the stack
+1. deploy the stack
 ```bash
 export AWS_DEFAULT_PROFILE=terraform
 export AWS_DEFAULT_REGION=us-east-1
@@ -12,10 +12,12 @@ export AWS_DEFAULT_REGION=us-east-1
 # wait for the LF1 and LF2 get created on cloud before running the following command
 ./cloudformation/run2.sh
 ```
-****
-Tear down the stack
+
+2. Update apigateway SDK by replacing the `frontend/apigClient.js` file with the one downloaded from the apigateway console.
+
+3. Tear down the stack
 ```bash
-./cloudformation/run.sh -**d**
+./cloudformation/run.sh -d
 ./cloudformation/run2.sh -d
 ```
 
