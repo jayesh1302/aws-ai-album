@@ -5,7 +5,7 @@ var SpeechRecognition = window.webkitSpeechRecognition || window.SpeechRecogniti
 const synth = window.speechSynthesis;
 const recognition = new SpeechRecognition();
 const icon = document.querySelector('i.fa.fa-microphone');
-var apiKeySec = "CE8x5HdMFdKs3EWzQAYM6wLS9LRQL1G9pACfqy02"
+var apiKeySec = "PWGqGEJKRY1ifqU6XHod23IhOFZk6aTvvjRsFpa7"
 
 ///// SEARCH TRIGGER //////
 function searchFromVoice() {
