@@ -22,5 +22,4 @@ export AWS_DEFAULT_REGION=us-east-1
 ```
 
 ## Demo
-![](img/example1.png)
-![](img/example2.png)
+![](img/example.png)

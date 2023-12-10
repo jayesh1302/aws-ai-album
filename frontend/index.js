@@ -54,7 +54,7 @@ function showImages(res) {
   }
 
   console.log(res);
-  results = res.body.results
+  results = res.body.imagePaths
   if (results.length == 0) {
     var newContent = document.createTextNode("No image to display");
     newDiv.appendChild(newContent);
@@ -116,13 +116,14 @@ function previewFile(input) {
     }
     var apigClient = apigClientFactory.newClient({ apiKey: apiKeySec });
 
+    var labelInputs = document.getElementById("labelinput").value;
     var params = {
       "key": name,
       "bucket": "b2-bucket-11-26",
       "Content-Type": "image/jpg",
+      "x-amz-meta-customLabels": labelInputs
     };
 
-    var labelInputs = document.getElementById("labelinput").value;
 
     //Use a custom x-amz-meta-customLabels HTTP header to include any custom labels the user specifies at upload time.
     //read 
