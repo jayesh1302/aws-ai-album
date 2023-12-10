@@ -6,11 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.css">
 
-    <link rel="stylesheet" href="style.css">
-
-
-    <!-- Smart Photo Album code -->
-
 
 </head>
 
@@ -24,25 +19,29 @@
                     <h1>AI-Album</h1>
                 </header>
 
+
                 <div class="bar">
+                    <label for="name">custom labels</label>
+                    <input style="display:inline-block;" id="labelinput" class="labelinput" type="text" title="labels">
+                </div>
+                <div class="buttons">
+                    <button onclick="uploadImage()" class="button" type="button">Upload Image</button>
+                </div>
+
+
+                <div class="bar">
+                    <label for="name">Search prompt</label>
                     <input style="display:inline-block;" id="searchbar" class="searchbar" type="text" title="Search">
-                    <span><a style="display:inline-block;" href="#" onclick="searchFromVoice()"> <img class="voice"
-                                style="display:inline;"
-                                src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e8/Google_mic.svg/716px-Google_mic.svg.png"
-                                title="Search by Voice"></a></span>
                 </div>
 
                 <div class="buttons">
                     <input type="file" id="realfile" onchange="previewFile(this);" hidden="hidden" />
                     <button onclick="search()" class="button" type="button">Search Image</button>
-                    <button onclick="uploadImage()" class="button" type="button">Upload Image</button>
-
                 </div>
-
             </div>
         </div>
 
-        <div class="container" id="images">
+        <div class="container" id="images" style="width: 100px; height: 100px;">
         </div>
 
         <script src="index.js"></script>

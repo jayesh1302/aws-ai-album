@@ -187,7 +187,7 @@ Resources:
                     statusCode: "200"
                     responseParameters:
                       method.response.header.Access-Control-Allow-Methods: "'*'"
-                      method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+                      method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,x-amz-meta-customLabels'"
                       method.response.header.Access-Control-Allow-Origin: "'*'"
                 requestTemplates:
                   application/json: '{"statusCode": 200}'
@@ -215,7 +215,7 @@ Resources:
                     statusCode: "200"
                     responseParameters:
                       method.response.header.Access-Control-Allow-Methods: "'*'"
-                      method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+                      method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,x-amz-meta-customLabels'"
                       method.response.header.Access-Control-Allow-Origin: "'*'"
                 requestTemplates:
                   application/json: '{"statusCode": 200}'
@@ -248,7 +248,7 @@ Resources:
                     statusCode: "200"
                     responseParameters:
                       method.response.header.Access-Control-Allow-Methods: "'*'"
-                      method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+                      method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,x-amz-meta-customLabels'"
                       method.response.header.Access-Control-Allow-Origin: "'*'"
                 requestTemplates:
                   application/json: '{"statusCode": 200}'
@@ -261,6 +261,10 @@ Resources:
                 - "application/json"
               parameters:
                 - name: "Content-Type"
+                  in: "header"
+                  required: false
+                  type: "string"
+                - name: "x-amz-meta-customLabels"
                   in: "header"
                   required: false
                   type: "string"
@@ -292,13 +296,14 @@ Resources:
                   default:
                     statusCode: "200"
                     responseParameters:
-                      method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key'"
+                      method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,x-amz-meta-customLabels'"
                       method.response.header.Access-Control-Allow-Methods: "'*'"
                       method.response.header.Access-Control-Allow-Origin: "'*'"
                 requestParameters:
                   integration.request.path.key: "method.request.path.key"
                   integration.request.path.bucket: "method.request.path.bucket"
                   integration.request.header.Content-Type: "method.request.header.Content-Type"
+                  integration.request.header.x-amz-meta-customLabels: "method.request.header.x-amz-meta-customLabels"
                 passthroughBehavior: "when_no_match"
                 contentHandling: "CONVERT_TO_BINARY"
                 type: "aws"
@@ -308,6 +313,10 @@ Resources:
               produces:
                 - "application/json"
               parameters:
+                - name: "x-amz-meta-customLabels"
+                  in: "header"
+                  required: false
+                  type: "string"
                 - name: "bucket"
                   in: "path"
                   required: true
@@ -332,7 +341,7 @@ Resources:
                     statusCode: "200"
                     responseParameters:
                       method.response.header.Access-Control-Allow-Methods: "'*'"
-                      method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+                      method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,x-amz-meta-customLabels'"
                       method.response.header.Access-Control-Allow-Origin: "'*'"
                 requestTemplates:
                   application/json: '{"statusCode": 200}'

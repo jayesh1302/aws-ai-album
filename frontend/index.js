@@ -54,12 +54,12 @@ function showImages(res) {
   }
 
   console.log(res);
-  if (res.length == 0) {
+  results = res.body.results
+  if (results.length == 0) {
     var newContent = document.createTextNode("No image to display");
     newDiv.appendChild(newContent);
   }
   else {
-    results = res.body.imagePaths
     for (var i = 0; i < results.length; i++) {
       console.log(results[i]);
       var newDiv = document.getElementById("images");
@@ -122,11 +122,17 @@ function previewFile(input) {
       "Content-Type": "image/jpg",
     };
 
+    var labelInputs = document.getElementById("labelinput").value;
+
+    //Use a custom x-amz-meta-customLabels HTTP header to include any custom labels the user specifies at upload time.
+    //read 
     var additionalParams = {
       headers: {
         "Content-Type": "image/jpg",
+        "x-amz-meta-customLabels": labelInputs
       }
     };
+    console.log(additionalParams);
 
     apigClient.uploadBucketKeyPut(params, encodedStr, additionalParams)
       .then(function (result) {
